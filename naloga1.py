@@ -22,7 +22,13 @@ def doloci_barvo_koze(slika,levo_zgoraj,desno_spodaj) -> tuple:
     '''Ta funkcija se kliče zgolj 1x na prvi sliki iz kamere. 
     Vrne barvo kože v območju ki ga definira oklepajoča škatla (levo_zgoraj, desno_spodaj).
       Način izračuna je prepuščen vaši domišljiji.'''
-    pass
+    # slika[y1:y2, x1:x2]
+    sredina = slika[levo_zgoraj[1]:desno_spodaj[1], levo_zgoraj[0]:desno_spodaj[0]]
+    cv.imshow('sredina', sredina)
+    cv.waitKey(0)
+    avg_color = cv.mean(sredina)[:3]
+
+    return tuple(map(int, avg_color))
 
 if __name__ == '__main__':
     #Pripravi kamero
@@ -39,7 +45,12 @@ if __name__ == '__main__':
             cv.imwrite('prva_slika.jpg', slika)
             cv.waitKey(0)
     #Izračunamo barvo kože na prvi sliki
+            #Izbral sem sredino slike saj obraz bo se vecino casa tam nahajal 240x320
+            levo_zgoraj = (160, 120)
+            desno_spodaj = (260, 220)
 
+            barva_koze = doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj)
+            print('Barva koze:', barva_koze)
     #Zajemaj slike iz kamere in jih obdeluj     
     
     #Označi območja (škatle), kjer se nahaja obraz (kako je prepuščeno vaši domišljiji)
