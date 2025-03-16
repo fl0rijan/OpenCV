@@ -26,9 +26,18 @@ def doloci_barvo_koze(slika,levo_zgoraj,desno_spodaj) -> tuple:
 
 if __name__ == '__main__':
     #Pripravi kamero
-
+    camera = cv.VideoCapture(1)
     #Zajami prvo sliko iz kamere
+    if not camera.isOpened():
+        print('Kamera ni bila odprta.')
+    else:
+        for _ in range(5):
+            ret, slika = camera.read()
 
+        if ret:
+            cv.imshow('Prva slika', slika)
+            cv.imwrite('prva_slika.jpg', slika)
+            cv.waitKey(0)
     #Izračunamo barvo kože na prvi sliki
 
     #Zajemaj slike iz kamere in jih obdeluj     
