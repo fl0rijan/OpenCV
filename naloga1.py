@@ -18,7 +18,13 @@ def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze) ->
 
 def prestej_piklse_z_barvo_koze(slika, barva_koze) -> int:
     '''Prestej število pikslov z barvo kože v škatli.'''
-    pass
+    spodnja_meja = np.array([barva_koze[0]-10, barva_koze[1]-10, barva_koze[2]-10])
+    zgornja_meja = np.array([barva_koze[0]+10, barva_koze[1]+10, barva_koze[2]+10])
+
+    maska = cv.inRange(slika, spodnja_meja, zgornja_meja)
+    stevilo_pikslov = cv.countNonZero(maska)
+
+    return stevilo_pikslov
 
 
 def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
@@ -57,6 +63,9 @@ if __name__ == '__main__':
 
             barva_koze = doloci_barvo_koze(zmanjsana_slika, levo_zgoraj, desno_spodaj)
             print('Barva koze:', barva_koze)
+
+            stevilo = prestej_piklse_z_barvo_koze(zmanjsana_slika, barva_koze)
+            print('Stevilo pikslov:', stevilo)
     # Zajemaj slike iz kamere in jih obdeluj
 
     # Označi območja (škatle), kjer se nahaja obraz (kako je prepuščeno vaši domišljiji)
