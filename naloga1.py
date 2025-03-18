@@ -25,7 +25,7 @@ def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze) ->
 
             stevilo_pikslov_koze = prestej_piklse_z_barvo_koze(skatla, barva_koze)
 
-            if stevilo_pikslov_koze > 0:
+            if stevilo_pikslov_koze > 50:
                 cv.rectangle(slika, (x, y), (x + sirina_skatle, y + visina_skatle), (204, 255, 204), 2)
 
             vrstica_slike.append(stevilo_pikslov_koze)
@@ -59,6 +59,16 @@ def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
     return tuple(map(int, avg_color))
 
 
+def floodfill(slika, x, y, sirina_skatle, visina_skatle):
+    center = (x + sirina_skatle // 2, y + visina_skatle // 2)
+
+    maska_floodfill = np.zeros((slika.shape[0] + 2, slika.shape[1] + 2), np.uint8)
+
+    cv.floodFill(slika, maska_floodfill, center, (0, 255, 0), (10, 10, 10), (10, 10, 10), flags=4)
+
+    return slika
+
+
 if __name__ == '__main__':
     # Pripravi kamero
     camera = cv.VideoCapture(1)
@@ -87,30 +97,35 @@ if __name__ == '__main__':
             print('Barva koze:', barva_koze)
 
             # Zajemaj slike iz kamere in jih obdeluj
-            sirina_skatle = 30
-            visina_skatle = 30
+            sirina_skatle = 15
+            visina_skatle = 15
 
             while True:
                 ret, slika = camera.read()
-
                 rezultat = obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze)
 
-                cv.imshow('Obraz', slika)
+                # rezultat = obdelaj_sliko_s_skatlami(zmanjsana_slika, sirina_skatle, visina_skatle, barva_koze)
+                for vrstica in rezultat:
+                    print(vrstica)
+
+                # Označi območja (škatle), kjer se nahaja obraz (kako je prepuščeno vaši domišljiji)
+                # cv.imshow('Obraz', slika)
+                # Vprašanje 1: Kako iz števila pikslov iz vsake škatle določiti celotno območje obraza (Floodfill)?
+                for i, vrstica in enumerate(rezultat):
+                    for j, stevilo_pikslov_koze in enumerate(vrstica):
+                        if stevilo_pikslov_koze > 75:
+                            x = j * sirina_skatle
+                            y = i * sirina_skatle
+
+                            slika_floodfill = floodfill(slika, x, y, sirina_skatle, visina_skatle)
+
+                cv.imshow('Obraz', slika_floodfill)
+                # Vprašanje 2: Kako prešteti število ljudi?
+
+                # Kako velikost prebirne škatle vpliva na hitrost algoritma in točnost detekcije? Poigrajte se s parametroma velikost_skatle
+                # in ne pozabite, da ni nujno da je škatla kvadratna.
                 if cv.waitKey(1) & 0xFF == ord('q'):
                     break
-
-            # rezultat = obdelaj_sliko_s_skatlami(zmanjsana_slika, sirina_skatle, visina_skatle, barva_koze)
-
-            # for vrstica in rezultat:
-            #    print(vrstica)
-
-    # Označi območja (škatle), kjer se nahaja obraz (kako je prepuščeno vaši domišljiji)
-    # Vprašanje 1: Kako iz števila pikslov iz vsake škatle določiti celotno območje obraza (Floodfill)?
-    # Vprašanje 2: Kako prešteti število ljudi?
-
-    # Kako velikost prebirne škatle vpliva na hitrost algoritma in točnost detekcije? Poigrajte se s parametroma velikost_skatle
-    # in ne pozabite, da ni nujno da je škatla kvadratna.
-
     camera.release()
     cv.destroyAllWindows()
     pass
