@@ -13,13 +13,32 @@ def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze) ->
     Primer: Če je v sliki 25 škatel, kjer je v vsaki vrstici 5 škatel, naj bo seznam oblike
       [[1,0,0,1,1],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[1,0,0,0,1]]. 
       V tem primeru je v prvi škatli 1 piksel kože, v drugi 0, v tretji 0, v četrti 1 in v peti 1.'''
-    pass
+
+    visina, sirina = slika.shape[:2]
+
+    rezultati = []
+
+    for y in range(0, visina - visina_skatle + 1, visina_skatle):
+        vrstica_slike = []
+        for x in range(0, sirina - sirina_skatle + 1, sirina_skatle):
+            skatla = slika[y:y + visina_skatle, x:x + sirina_skatle]
+
+            stevilo_pikslov_koze = prestej_piklse_z_barvo_koze(skatla, barva_koze)
+
+            if stevilo_pikslov_koze > 0:
+                cv.rectangle(slika, (x, y), (x + sirina_skatle, y + visina_skatle), (204, 255, 204), 2)
+
+            vrstica_slike.append(stevilo_pikslov_koze)
+
+        rezultati.append(vrstica_slike)
+
+    return rezultati
 
 
 def prestej_piklse_z_barvo_koze(slika, barva_koze) -> int:
     '''Prestej število pikslov z barvo kože v škatli.'''
-    spodnja_meja = np.array([barva_koze[0]-10, barva_koze[1]-10, barva_koze[2]-10])
-    zgornja_meja = np.array([barva_koze[0]+10, barva_koze[1]+10, barva_koze[2]+10])
+    spodnja_meja = np.array([barva_koze[0] - 10, barva_koze[1] - 10, barva_koze[2] - 10])
+    zgornja_meja = np.array([barva_koze[0] + 10, barva_koze[1] + 10, barva_koze[2] + 10])
 
     maska = cv.inRange(slika, spodnja_meja, zgornja_meja)
     stevilo_pikslov = cv.countNonZero(maska)
@@ -56,7 +75,10 @@ if __name__ == '__main__':
             cv.waitKey(0)
             # Izračunamo barvo kože na prvi sliki
             # Izbral sem sredino slike saj obraz bo se vecino casa tam nahajal 240x320
-            zmanjsana_slika = zmanjsaj_sliko(slika, 320, 240)
+            visina = 240
+            sirina = 320
+            zmanjsana_slika = zmanjsaj_sliko(slika, sirina, visina)
+            cv.imwrite('zmanjsana.jpg', zmanjsana_slika)
 
             levo_zgoraj = (110, 70)
             desno_spodaj = (210, 170)
@@ -64,9 +86,23 @@ if __name__ == '__main__':
             barva_koze = doloci_barvo_koze(zmanjsana_slika, levo_zgoraj, desno_spodaj)
             print('Barva koze:', barva_koze)
 
-            stevilo = prestej_piklse_z_barvo_koze(zmanjsana_slika, barva_koze)
-            print('Stevilo pikslov:', stevilo)
-    # Zajemaj slike iz kamere in jih obdeluj
+            # Zajemaj slike iz kamere in jih obdeluj
+            sirina_skatle = 30
+            visina_skatle = 30
+
+            while True:
+                ret, slika = camera.read()
+
+                rezultat = obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze)
+
+                cv.imshow('Obraz', slika)
+                if cv.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+            # rezultat = obdelaj_sliko_s_skatlami(zmanjsana_slika, sirina_skatle, visina_skatle, barva_koze)
+
+            # for vrstica in rezultat:
+            #    print(vrstica)
 
     # Označi območja (škatle), kjer se nahaja obraz (kako je prepuščeno vaši domišljiji)
     # Vprašanje 1: Kako iz števila pikslov iz vsake škatle določiti celotno območje obraza (Floodfill)?
@@ -74,4 +110,7 @@ if __name__ == '__main__':
 
     # Kako velikost prebirne škatle vpliva na hitrost algoritma in točnost detekcije? Poigrajte se s parametroma velikost_skatle
     # in ne pozabite, da ni nujno da je škatla kvadratna.
+
+    camera.release()
+    cv.destroyAllWindows()
     pass
