@@ -51,8 +51,8 @@ def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
       Način izračuna je prepuščen vaši domišljiji.'''
     # slika[y1:y2, x1:x2]
     sredina = slika[levo_zgoraj[1]:desno_spodaj[1], levo_zgoraj[0]:desno_spodaj[0]]
-    cv.imshow('sredina', sredina)
-    cv.waitKey(0)
+    # cv.imshow('sredina', sredina)
+    # cv.waitKey(0)
     avg_color = cv.mean(sredina)[:3]
 
     return tuple(map(int, avg_color))
@@ -63,7 +63,7 @@ def floodfill(slika, x, y, sirina_skatle, visina_skatle):
 
     maska_floodfill = np.zeros((slika.shape[0] + 2, slika.shape[1] + 2), np.uint8)
 
-    cv.floodFill(slika, maska_floodfill, center, (0, 255, 0), (1, 1, 1), (2, 2, 2), flags=4)
+    cv.floodFill(slika, maska_floodfill, center, (204, 255, 204), (1, 1, 1), (2, 2, 2), flags=4)
 
     return slika
 
@@ -77,8 +77,8 @@ def calculateFPS(prejsnji_cas):
 def showFPS(slika, fps):
     font = cv.FONT_HERSHEY_SIMPLEX
     barva = (0, 255, 0)
-    velikost = 1
-    debelost = 2
+    velikost = 0.5
+    debelost = 1
     poz = (10, 30)
 
     cv.putText(slika, f'FPS: {fps:.2f}', poz, font, velikost, barva, debelost, cv.LINE_AA)
@@ -95,11 +95,10 @@ if __name__ == '__main__':
     else:
         for _ in range(5):
             ret, slika = camera.read()
-
         if ret:
-            cv.imshow('Prva slika', slika)
-            cv.imwrite('prva_slika.jpg', slika)
-            cv.waitKey(0)
+            # cv.imshow('Prva slika', slika)
+            # cv.imwrite('prva_slika.jpg', slika)
+            # cv.waitKey(0)
             # Izračunamo barvo kože na prvi sliki
             # Izbral sem sredino slike saj obraz bo se vecino casa tam nahajal 240x320
             visina = 240
@@ -118,12 +117,14 @@ if __name__ == '__main__':
             print('Barva koze:', barva_koze)
 
             # Zajemaj slike iz kamere in jih obdeluj
-            sirina_skatle = 20
-            visina_skatle = 20
+            sirina_skatle = 15
+            visina_skatle = 15
 
             prejsnji_cas = time.time()
             while True:
                 ret, slika = camera.read()
+                # zmanjsanje slike
+                slika = zmanjsaj_sliko(slika, sirina, visina)
                 rezultat = obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze)
                 fps, prejsnji_cas = calculateFPS(prejsnji_cas)
                 # rezultat = obdelaj_sliko_s_skatlami(zmanjsana_slika, sirina_skatle, visina_skatle, barva_koze)
@@ -135,12 +136,12 @@ if __name__ == '__main__':
                 # Vprašanje 1: Kako iz števila pikslov iz vsake škatle določiti celotno območje obraza (Floodfill)?
                 for i, vrstica in enumerate(rezultat):
                     for j, stevilo_pikslov_koze in enumerate(vrstica):
-                        if stevilo_pikslov_koze > 50:
+                        if stevilo_pikslov_koze > 25:
                             x = j * sirina_skatle
                             y = i * sirina_skatle
 
                             floodfill(slika, x, y, sirina_skatle, visina_skatle)
-                            cv.rectangle(slika, (x, y), (x + sirina_skatle, y + visina_skatle), (204, 255, 204), 2)
+                            cv.rectangle(slika, (x, y), (x + sirina_skatle, y + visina_skatle), (204, 255, 204), 1)
 
                 slika = showFPS(slika, fps)
                 cv.imshow('Obraz', slika)
