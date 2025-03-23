@@ -11,7 +11,7 @@ def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze) ->
     Škatle se ne smejo prekrivati!
     Vrne seznam škatel, s številom pikslov kože.
     Primer: Če je v sliki 25 škatel, kjer je v vsaki vrstici 5 škatel, naj bo seznam oblike
-      [[1,0,0,1,1],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[1,0,0,0,1]]. 
+      [[1,0,0,1,1],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[1,0,0,0,1]].
       V tem primeru je v prvi škatli 1 piksel kože, v drugi 0, v tretji 0, v četrti 1 in v peti 1.'''
 
     visina, sirina = slika.shape[:2]
@@ -47,7 +47,9 @@ def prestej_piklse_z_barvo_koze(slika, barva_koze) -> int:
 
 
 def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
-    '''Ta funkcija se kliče zgolj 1x na prvi sliki iz kamere. 
+    '''Ta funkcija se kliče zgolj 1x na prvi sliki iz kamere.
+def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
+    '''Ta funkcija se kliče zgolj 1x na prvi sliki iz kamere.
     Vrne barvo kože v območju ki ga definira oklepajoča škatla (levo_zgoraj, desno_spodaj).
       Način izračuna je prepuščen vaši domišljiji.'''
     # slika[y1:y2, x1:x2]
@@ -90,11 +92,51 @@ if __name__ == '__main__':
             zmanjsana_slika = zmanjsaj_sliko(slika, sirina, visina)
             cv.imwrite('zmanjsana.jpg', zmanjsana_slika)
 
+            size = 50
+            center_x = sirina // 2
+            center_y = visina // 2
+            # Izračunamo barvo kože na prvi sliki
+            # Izbral sem sredino slike saj obraz bo se vecino casa tam nahajal 240x320
+            visina = 240
+            sirina = 320
+            zmanjsana_slika = zmanjsaj_sliko(slika, sirina, visina)
+            cv.imwrite('zmanjsana.jpg', zmanjsana_slika)
+
+            levo_zgoraj = (center_x - size // 2, center_y - size // 2)
+            desno_spodaj = (center_x + size // 2, center_y + size // 2)
+
+            barva_koze = doloci_barvo_koze(zmanjsana_slika, levo_zgoraj, desno_spodaj)
             levo_zgoraj = (110, 70)
             desno_spodaj = (210, 170)
 
             barva_koze = doloci_barvo_koze(zmanjsana_slika, levo_zgoraj, desno_spodaj)
             print('Barva koze:', barva_koze)
+
+            # Zajemaj slike iz kamere in jih obdeluj
+            sirina_skatle = 15
+            visina_skatle = 15
+
+            while True:
+                ret, slika = camera.read()
+                rezultat = obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze)
+
+                # rezultat = obdelaj_sliko_s_skatlami(zmanjsana_slika, sirina_skatle, visina_skatle, barva_koze)
+                #for vrstica in rezultat:
+                #    print(vrstica)
+
+                # Označi območja (škatle), kjer se nahaja obraz (kako je prepuščeno vaši domišljiji)
+                # cv.imshow('Obraz', slika)
+                # Vprašanje 1: Kako iz števila pikslov iz vsake škatle določiti celotno območje obraza (Floodfill)?
+                for i, vrstica in enumerate(rezultat):
+                    for j, stevilo_pikslov_koze in enumerate(vrstica):
+                        if stevilo_pikslov_koze > 75:
+                            x = j * sirina_skatle
+                            y = i * sirina_skatle
+
+                            slika_floodfill = floodfill(slika, x, y, sirina_skatle, visina_skatle)
+
+                cv.imshow('Obraz', slika_floodfill)
+                # Vprašanje 2: Kako prešteti število ljudi?
 
             # Zajemaj slike iz kamere in jih obdeluj
             sirina_skatle = 15
