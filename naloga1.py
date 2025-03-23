@@ -25,9 +25,6 @@ def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze) ->
 
             stevilo_pikslov_koze = prestej_piklse_z_barvo_koze(skatla, barva_koze)
 
-            if stevilo_pikslov_koze > 50:
-                cv.rectangle(slika, (x, y), (x + sirina_skatle, y + visina_skatle), (204, 255, 204), 2)
-
             vrstica_slike.append(stevilo_pikslov_koze)
 
         rezultati.append(vrstica_slike)
@@ -64,7 +61,7 @@ def floodfill(slika, x, y, sirina_skatle, visina_skatle):
 
     maska_floodfill = np.zeros((slika.shape[0] + 2, slika.shape[1] + 2), np.uint8)
 
-    cv.floodFill(slika, maska_floodfill, center, (0, 255, 0), (10, 10, 10), (10, 10, 10), flags=4)
+    cv.floodFill(slika, maska_floodfill, center, (0, 255, 0), (1, 1, 1), (2, 2, 2), flags=4)
 
     return slika
 
@@ -109,7 +106,7 @@ if __name__ == '__main__':
                 rezultat = obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze)
 
                 # rezultat = obdelaj_sliko_s_skatlami(zmanjsana_slika, sirina_skatle, visina_skatle, barva_koze)
-                #for vrstica in rezultat:
+                # for vrstica in rezultat:
                 #    print(vrstica)
 
                 # Označi območja (škatle), kjer se nahaja obraz (kako je prepuščeno vaši domišljiji)
@@ -117,13 +114,14 @@ if __name__ == '__main__':
                 # Vprašanje 1: Kako iz števila pikslov iz vsake škatle določiti celotno območje obraza (Floodfill)?
                 for i, vrstica in enumerate(rezultat):
                     for j, stevilo_pikslov_koze in enumerate(vrstica):
-                        if stevilo_pikslov_koze > 75:
+                        if stevilo_pikslov_koze > 50:
                             x = j * sirina_skatle
                             y = i * sirina_skatle
 
-                            slika_floodfill = floodfill(slika, x, y, sirina_skatle, visina_skatle)
+                            floodfill(slika, x, y, sirina_skatle, visina_skatle)
+                            cv.rectangle(slika, (x, y), (x + sirina_skatle, y + visina_skatle), (204, 255, 204), 2)
 
-                cv.imshow('Obraz', slika_floodfill)
+                cv.imshow('Obraz', slika)
                 # Vprašanje 2: Kako prešteti število ljudi?
 
                 # Kako velikost prebirne škatle vpliva na hitrost algoritma in točnost detekcije? Poigrajte se s parametroma velikost_skatle
