@@ -1,3 +1,5 @@
+import time
+
 import cv2 as cv
 import numpy as np
 
@@ -66,6 +68,24 @@ def floodfill(slika, x, y, sirina_skatle, visina_skatle):
     return slika
 
 
+def calculateFPS(prejsnji_cas):
+    trenutni_cas = time.time()
+    fps = 1 / (trenutni_cas - prejsnji_cas)
+    return fps, trenutni_cas
+
+
+def showFPS(slika, fps):
+    font = cv.FONT_HERSHEY_SIMPLEX
+    barva = (0, 255, 0)
+    velikost = 1
+    debelost = 2
+    poz = (10, 30)
+
+    cv.putText(slika, f'FPS: {fps:.2f}', poz, font, velikost, barva, debelost, cv.LINE_AA)
+
+    return slika
+
+
 if __name__ == '__main__':
     # Pripravi kamero
     camera = cv.VideoCapture(1)
@@ -98,13 +118,14 @@ if __name__ == '__main__':
             print('Barva koze:', barva_koze)
 
             # Zajemaj slike iz kamere in jih obdeluj
-            sirina_skatle = 15
-            visina_skatle = 15
+            sirina_skatle = 20
+            visina_skatle = 20
 
+            prejsnji_cas = time.time()
             while True:
                 ret, slika = camera.read()
                 rezultat = obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze)
-
+                fps, prejsnji_cas = calculateFPS(prejsnji_cas)
                 # rezultat = obdelaj_sliko_s_skatlami(zmanjsana_slika, sirina_skatle, visina_skatle, barva_koze)
                 # for vrstica in rezultat:
                 #    print(vrstica)
@@ -121,6 +142,7 @@ if __name__ == '__main__':
                             floodfill(slika, x, y, sirina_skatle, visina_skatle)
                             cv.rectangle(slika, (x, y), (x + sirina_skatle, y + visina_skatle), (204, 255, 204), 2)
 
+                slika = showFPS(slika, fps)
                 cv.imshow('Obraz', slika)
                 # Vprašanje 2: Kako prešteti število ljudi?
 
