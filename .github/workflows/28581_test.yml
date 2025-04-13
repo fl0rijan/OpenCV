@@ -1,18 +1,20 @@
-name: 28581 Test
+name: 28581 Test # Ime workflowa
 
+# Zagnal se bo vsakic ko bo push na vejo master
 on:
   push:
     branches:
       - master
 
 jobs:
+  # Prvi job preverja, ali testne skripte obstajajo
   preveri_teste:
     runs-on: self-hosted
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
 
-      - name: Check if test scripts exist
+      - name: Check if test scripts exist # Preveri če obstaja mapa tests in vsaj ena datoteka z imenov test_*.py
         run: |
           if [ -d "tests" ] && [ $(ls tests/test_*.py 2>/dev/null | wc -l) -gt 0 ]; then
             echo "Test scripts exist."
@@ -20,15 +22,15 @@ jobs:
           else
             echo "ERROR: There are no test scripts!" > napaka.txt
           fi
-
+        # Nalozimo datoteko napaka.txt kot artefakt, da bo jo lahko uporabil drugi job
       - name: Load napaka.txt as artifact
         uses: actions/upload-artifact@v4
         with:
           name: napaka
           path: napaka.txt
-
+  # Drugi job zažene teste, samo ce ni ERRORA v napaka.txt
   pozeni_teste:
-    needs: preveri_teste
+    needs: preveri_teste # odvisen od prejsnjega joba, zazene se po njem
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
@@ -39,23 +41,24 @@ jobs:
         with:
           name: napaka
 
+        # če vsebuje ERROR prekinemo akcijo
       - name: Check the content of napaka.txt
         run: |
           if grep -q "ERROR" napaka.txt; then
             echo "Can't run tests."
             exit 1
           fi
-
+        # nastavimo Python okolje
       - name: Setup Python environment
         uses: actions/setup-python@v5
         with:
           python-version: '3.8'
-
+        # namestimo vsa orodja oziroma odvisnosti iz requiremnts.txt
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
           pip install opencv-python numpy pytest
-
+        # zaženemo teste z pytest
       - name: Run tests
         run: |
           export PYTHONPATH=$PYTHOJNPATH:$(pwd)

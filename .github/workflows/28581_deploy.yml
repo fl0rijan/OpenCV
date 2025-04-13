@@ -1,8 +1,11 @@
 name: 28581 Deploy
 
+# Environemnt spremenljivke, vsebuje DockerHub username in password.
 env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+# Tale workflow se bo sprozil, ko se zakljuci 28581 Test workflow
 on:
   workflow_run:
     workflows: ["28581 Test"]
@@ -11,26 +14,32 @@ on:
 
 jobs:
   deploy:
+    # Tukaj je pogoj da se izvede samo če je bil testni workflow uspešen
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: self-hosted
-    strategy:
+    runs-on: self-hosted # Uporaba lokalnega runnerja
+    strategy: # deploy se bo izvedel za več verzij Pythona (matrika)
       matrix:
-        python-version: [3.8, 3.9]
+        python-version: [3.8, 3.9] # Gradil in objavil se bo na dve verziji
 
     steps:
+      # Kloniranje trenutnega repozitorija
       - name: Clone repository
         uses: actions/checkout@v3
 
+      # Nastavi Python okolje
       - name: Setup Python environement ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
+      # Prijava v DockerHUb
       - name: Login to DockerHub
         run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
+      # Gradnja Docker slike
       - name: Build Docker image
         run: docker build -t $DOCKER_USERNAME/obdelava_slike:${{ matrix.python-version }} .
 
+      # Push slike na DockerHub
       - name: Push to DockerHUb
         run: docker push $DOCKER_USERNAME/obdelava_slike:${{ matrix.python-version }}
