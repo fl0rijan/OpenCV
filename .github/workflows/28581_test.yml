@@ -57,7 +57,9 @@ jobs:
           pip install opencv-python numpy pytest
 
       - name: Run tests
-        run: pytest tests/
+        run: |
+          export PYTHONPATH=$PYTHOJNPATH:$(pwd)
+          pytest tests/
 
 
 
