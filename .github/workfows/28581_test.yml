@@ -1,0 +1,63 @@
+name: 28581 Test
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  preveri_teste:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/chekout@v3
+
+      - name: Check if test scripts exist
+        run: |
+          if [-d "tests" ] && ls tests/test_*.py > /dev/null 2>&1; then
+            echo "Test scripts exist."
+            echo "OK" > napaka.txt
+          else
+            echo "ERROR: There are no test scripts!" > napaka.txt
+          fi
+
+      - name: Load napaka.txt as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: napaka
+          path: napaka.txt
+
+  pozeni_teste:
+    needs: preveri_teste
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Download napaka.txt
+        uses: actions/download-artifact@v4
+        with:
+          name: napaka
+
+      - name: Check the content of napaka.txt
+        run: |
+          if grep -q "ERROR" napaka.txt; then
+            echo "Can't run tests."
+            exit 1
+          fi
+
+      - name: Setup Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install opencv-python numpy pytest
+
+      - name: Run tests
+        run: pytest tests/
+
+
+
