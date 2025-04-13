@@ -33,4 +33,4 @@ def test_prestej_piklse_z_barvo_koze2():
     barva = (45, 34, 30) # barva ki jo iscemo
 
     # V tem primeru mora vrniti 0, ker je celotna slika drugacne barve
-    assert prestej_piklse_z_barvo_koze(img, barva) == 100
+    assert prestej_piklse_z_barvo_koze(img, barva) == 0
